@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { Pool } from '@/node_modules/@types/pg';
 
 // Configuració de la connexió a Railway (usa la variable d'entorn DATABASE_URL)
 const pool = new Pool({
