@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     // 2. Extreure els camps clau (ajusta els IDs segons els teus sensors)
     // Nota: 'soilmoisture1' és l'ID estàndard del WH51
-    // 'tempinf' i 'humidityin' solen ser el WH31 o la base
+    // 'tempinf' i 'humidityin' solen ser el ::WH31 o la base
     const soil_moisture = data.soilmoisture1 ? parseInt(data.soilmoisture1 as string) : null;
     const temp_air = data.tempinf ? parseFloat(data.tempinf as string) : null;
     const humidity_air = data.humidityin ? parseInt(data.humidityin as string) : null;
