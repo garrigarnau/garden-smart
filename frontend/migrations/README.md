@@ -13,13 +13,19 @@ CREATE INDEX IF NOT EXISTS idx_sensor_data_raw_data ON sensor_data USING gin(raw
 CREATE TABLE IF NOT EXISTS watering_logs (
   id SERIAL PRIMARY KEY,
   watering_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  notes TEXT,
-  amount_ml INTEGER,
-  duration_minutes INTEGER,
+  watering_type VARCHAR(20) NOT NULL DEFAULT 'average',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_watering_logs_time ON watering_logs(watering_time DESC);
+```
+
+### 3. If table already exists with old schema, migrate it
+```sql
+ALTER TABLE watering_logs DROP COLUMN IF EXISTS notes;
+ALTER TABLE watering_logs DROP COLUMN IF EXISTS amount_ml;
+ALTER TABLE watering_logs DROP COLUMN IF EXISTS duration_minutes;
+ALTER TABLE watering_logs ADD COLUMN IF NOT EXISTS watering_type VARCHAR(20) NOT NULL DEFAULT 'average';
 ```
 
 ## How to Run

@@ -16,9 +16,7 @@ export async function GET(req: Request) {
       SELECT
         id,
         watering_time,
-        notes,
-        amount_ml,
-        duration_minutes,
+        watering_type,
         created_at
       FROM watering_logs
       WHERE watering_time >= NOW() - INTERVAL '${days} days'
@@ -43,38 +41,37 @@ export async function GET(req: Request) {
   }
 }
 
-// POST - Registrar nuevo riego
+// POST - Register new watering
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { watering_time, notes, amount_ml, duration_minutes } = body;
+    const { watering_time, watering_type } = body;
+
+    // Validate watering_type
+    const validTypes = ['low', 'average', 'high'];
+    const type = watering_type && validTypes.includes(watering_type) ? watering_type : 'average';
 
     const query = `
-      INSERT INTO watering_logs (watering_time, notes, amount_ml, duration_minutes)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO watering_logs (watering_time, watering_type)
+      VALUES ($1, $2)
       RETURNING *;
     `;
 
     const wateringTime = watering_time ? new Date(watering_time) : new Date();
-    const values = [
-      wateringTime,
-      notes || null,
-      amount_ml || null,
-      duration_minutes || null
-    ];
+    const values = [wateringTime, type];
 
     const result = await pool.query(query, values);
 
-    console.log('✅ Riego registrado:', result.rows[0]);
+    console.log('✅ Watering registered:', result.rows[0]);
 
     return NextResponse.json({
       status: 'success',
-      message: 'Riego registrado correctamente',
+      message: 'Watering registered successfully',
       data: result.rows[0]
     });
 
   } catch (error) {
-    console.error('❌ Error registrando riego:', error);
+    console.error('❌ Error registering watering:', error);
     return NextResponse.json({
       error: 'Failed to register watering',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -105,7 +102,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({
       status: 'success',
-      message: 'Riego eliminado correctamente',
+      message: 'Watering deleted successfully',
       data: result.rows[0]
     });
 

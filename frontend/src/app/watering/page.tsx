@@ -6,9 +6,7 @@ import Link from 'next/link';
 interface WateringLog {
   id: number;
   watering_time: string;
-  notes: string | null;
-  amount_ml: number | null;
-  duration_minutes: number | null;
+  watering_type: 'low' | 'average' | 'high';
   created_at: string;
 }
 
@@ -16,13 +14,6 @@ export default function WateringPage() {
   const [logs, setLogs] = useState<WateringLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-
-  // Form state
-  const [notes, setNotes] = useState('');
-  const [amountMl, setAmountMl] = useState('');
-  const [durationMinutes, setDurationMinutes] = useState('');
-  const [customTime, setCustomTime] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -48,10 +39,8 @@ export default function WateringPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleWatering = async (type: 'low' | 'average' | 'high') => {
     setSubmitting(true);
-
     try {
       const response = await fetch('/api/watering', {
         method: 'POST',
@@ -59,10 +48,7 @@ export default function WateringPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          watering_time: customTime || undefined,
-          notes: notes || undefined,
-          amount_ml: amountMl ? parseInt(amountMl) : undefined,
-          duration_minutes: durationMinutes ? parseInt(durationMinutes) : undefined,
+          watering_type: type
         }),
       });
 
@@ -70,14 +56,6 @@ export default function WateringPage() {
         throw new Error('Failed to register watering');
       }
 
-      // Reset form
-      setNotes('');
-      setAmountMl('');
-      setDurationMinutes('');
-      setCustomTime('');
-      setShowForm(false);
-
-      // Refresh logs
       await fetchLogs();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error registering watering');
@@ -106,26 +84,21 @@ export default function WateringPage() {
     }
   };
 
-  const quickWatering = async () => {
-    setSubmitting(true);
-    try {
-      const response = await fetch('/api/watering', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      });
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'low': return '#93c5fd';
+      case 'average': return '#60a5fa';
+      case 'high': return '#2563eb';
+      default: return '#94a3b8';
+    }
+  };
 
-      if (!response.ok) {
-        throw new Error('Failed to register watering');
-      }
-
-      await fetchLogs();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error registering watering');
-    } finally {
-      setSubmitting(false);
+  const getTypeEmoji = (type: string) => {
+    switch (type) {
+      case 'low': return '💧';
+      case 'average': return '💦';
+      case 'high': return '🌊';
+      default: return '💧';
     }
   };
 
@@ -161,147 +134,77 @@ export default function WateringPage() {
         </div>
       )}
 
-      {/* Quick Action Button */}
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <button
-          onClick={quickWatering}
-          disabled={submitting}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#10b981',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '16px',
-            fontWeight: '500',
-            cursor: submitting ? 'not-allowed' : 'pointer',
-            opacity: submitting ? 0.6 : 1
-          }}
-        >
-          {submitting ? 'Registering...' : '✓ I watered now'}
-        </button>
-
-        <button
-          onClick={() => setShowForm(!showForm)}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#0070f3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '16px',
-            fontWeight: '500',
-            cursor: 'pointer'
-          }}
-        >
-          {showForm ? '✕ Cancel' : '+ Add with details'}
-        </button>
-      </div>
-
-      {/* Detailed Form */}
-      {showForm && (
-        <form onSubmit={handleSubmit} style={{
-          marginTop: '1.5rem',
-          padding: '1.5rem',
-          backgroundColor: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px'
-        }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Date and time (optional - defaults to now)
-            </label>
-            <input
-              type="datetime-local"
-              value={customTime}
-              onChange={(e) => setCustomTime(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Amount (ml)
-            </label>
-            <input
-              type="number"
-              value={amountMl}
-              onChange={(e) => setAmountMl(e.target.value)}
-              placeholder="e.g., 500"
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Duration (minutes)
-            </label>
-            <input
-              type="number"
-              value={durationMinutes}
-              onChange={(e) => setDurationMinutes(e.target.value)}
-              placeholder="e.g., 5"
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Notes
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g., Full watering of all plants"
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontFamily: 'inherit'
-              }}
-            />
-          </div>
-
+      {/* Quick Action Buttons */}
+      <div style={{
+        marginTop: '2rem',
+        padding: '1.5rem',
+        backgroundColor: '#f8fafc',
+        border: '2px solid #e2e8f0',
+        borderRadius: '8px'
+      }}>
+        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>Record Watering</h3>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <button
-            type="submit"
+            onClick={() => handleWatering('low')}
             disabled={submitting}
             style={{
-              padding: '10px 20px',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '500',
+              padding: '16px 24px',
+              backgroundColor: '#dbeafe',
+              color: '#1e40af',
+              border: '2px solid #93c5fd',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
               cursor: submitting ? 'not-allowed' : 'pointer',
-              opacity: submitting ? 0.6 : 1
+              opacity: submitting ? 0.6 : 1,
+              flex: '1',
+              minWidth: '140px'
             }}
           >
-            {submitting ? 'Saving...' : 'Save Watering'}
+            💧 Low
           </button>
-        </form>
-      )}
+
+          <button
+            onClick={() => handleWatering('average')}
+            disabled={submitting}
+            style={{
+              padding: '16px 24px',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: '2px solid #2563eb',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.6 : 1,
+              flex: '1',
+              minWidth: '140px'
+            }}
+          >
+            💦 Average
+          </button>
+
+          <button
+            onClick={() => handleWatering('high')}
+            disabled={submitting}
+            style={{
+              padding: '16px 24px',
+              backgroundColor: '#1e40af',
+              color: 'white',
+              border: '2px solid #1e3a8a',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.6 : 1,
+              flex: '1',
+              minWidth: '140px'
+            }}
+          >
+            🌊 High
+          </button>
+        </div>
+      </div>
 
       {/* History */}
       <h2 style={{ marginTop: '3rem', marginBottom: '1rem' }}>History (last 30 days)</h2>
@@ -320,11 +223,12 @@ export default function WateringPage() {
                 borderRadius: '8px',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'start'
+                alignItems: 'center',
+                gap: '1rem'
               }}
             >
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: '500', fontSize: '16px', marginBottom: '0.5rem' }}>
+                <div style={{ fontWeight: '500', fontSize: '16px', marginBottom: '0.25rem' }}>
                   {new Date(log.watering_time).toLocaleString('en-US', {
                     weekday: 'long',
                     year: 'numeric',
@@ -334,16 +238,20 @@ export default function WateringPage() {
                     minute: '2-digit'
                   })}
                 </div>
-                {log.notes && (
-                  <div style={{ color: '#666', fontSize: '14px', marginBottom: '0.5rem' }}>
-                    {log.notes}
-                  </div>
-                )}
-                <div style={{ color: '#94a3b8', fontSize: '13px', display: 'flex', gap: '1rem' }}>
-                  {log.amount_ml && <span>💧 {log.amount_ml} ml</span>}
-                  {log.duration_minutes && <span>⏱️ {log.duration_minutes} min</span>}
-                </div>
               </div>
+
+              <div style={{
+                padding: '6px 16px',
+                backgroundColor: getTypeColor(log.watering_type),
+                color: log.watering_type === 'low' ? '#1e40af' : 'white',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                whiteSpace: 'nowrap'
+              }}>
+                {getTypeEmoji(log.watering_type)} {log.watering_type.toUpperCase()}
+              </div>
+
               <button
                 onClick={() => handleDelete(log.id)}
                 style={{
@@ -353,7 +261,8 @@ export default function WateringPage() {
                   border: '1px solid #fcc',
                   borderRadius: '4px',
                   fontSize: '12px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 Delete
