@@ -163,8 +163,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* View Logs Button */}
-      <div style={{ marginTop: '2rem' }}>
+      {/* Navigation Buttons */}
+      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
         <Link
           href="/logs"
           style={{
@@ -177,7 +177,21 @@ export default function Home() {
             fontWeight: '500'
           }}
         >
-          View All Sensor Data Logs →
+          📊 Sensor Data Logs
+        </Link>
+        <Link
+          href="/watering"
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#10b981',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: '6px',
+            display: 'inline-block',
+            fontWeight: '500'
+          }}
+        >
+          💧 Watering Log
         </Link>
       </div>
 
