@@ -15,6 +15,7 @@ export default function WateringPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [customTime, setCustomTime] = useState('');
 
   useEffect(() => {
     fetchLogs();
@@ -42,20 +43,29 @@ export default function WateringPage() {
   const handleWatering = async (type: 'low' | 'average' | 'high') => {
     setSubmitting(true);
     try {
+      const body: any = {
+        watering_type: type
+      };
+
+      // If custom time is set, use it
+      if (customTime) {
+        body.watering_time = customTime;
+      }
+
       const response = await fetch('/api/watering', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          watering_type: type
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         throw new Error('Failed to register watering');
       }
 
+      // Reset custom time after successful submit
+      setCustomTime('');
       await fetchLogs();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error registering watering');
@@ -143,6 +153,50 @@ export default function WateringPage() {
         borderRadius: '8px'
       }}>
         <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>Record Watering</h3>
+
+        {/* Date/Time Picker */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '0.5rem',
+            fontSize: '14px',
+            color: '#666'
+          }}>
+            Date & Time (optional - defaults to now)
+          </label>
+          <input
+            type="datetime-local"
+            value={customTime}
+            onChange={(e) => setCustomTime(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontFamily: 'inherit'
+            }}
+          />
+          {customTime && (
+            <button
+              onClick={() => setCustomTime('')}
+              style={{
+                marginTop: '0.5rem',
+                padding: '4px 8px',
+                backgroundColor: '#f3f4f6',
+                color: '#6b7280',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                fontSize: '12px',
+                cursor: 'pointer'
+              }}
+            >
+              Clear (use current time)
+            </button>
+          )}
+        </div>
+
+        {/* Type Buttons */}
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <button
             onClick={() => handleWatering('low')}

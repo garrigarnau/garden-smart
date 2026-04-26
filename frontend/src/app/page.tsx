@@ -195,29 +195,6 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* API Information */}
-      <div style={{
-        marginTop: '3rem',
-        padding: '1rem',
-        backgroundColor: '#fefce8',
-        border: '1px solid #fef08a',
-        borderRadius: '6px',
-        fontSize: '0.9rem'
-      }}>
-        <strong>📡 Configure Ecowitt:</strong>
-        <div style={{ marginTop: '0.5rem' }}>
-          Set your Ecowitt device to POST data to:
-          <code style={{
-            display: 'block',
-            marginTop: '0.5rem',
-            padding: '0.5rem',
-            backgroundColor: '#fff',
-            borderRadius: '4px'
-          }}>
-            POST {typeof window !== 'undefined' ? window.location.origin : ''}/api/ingest
-          </code>
-        </div>
-      </div>
     </main>
   );
 }
